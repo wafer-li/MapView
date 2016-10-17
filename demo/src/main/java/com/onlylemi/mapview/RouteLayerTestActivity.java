@@ -3,9 +3,8 @@ package com.onlylemi.mapview;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.PointF;
-import android.os.AsyncTask;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -17,12 +16,9 @@ import com.onlylemi.mapview.library.layer.RouteLayer;
 import com.onlylemi.mapview.library.utils.MapUtils;
 
 import java.io.IOException;
-import java.security.cert.PolicyNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class RouteLayerTestActivity extends AppCompatActivity {
 
@@ -80,13 +76,12 @@ public class RouteLayerTestActivity extends AppCompatActivity {
 
                         PointF target = new PointF(marks.get(num).x, marks.get(num).y);
                         routeList = MapUtils.getShortestDistanceBetweenTwoPoints
-                                (marks.get(39), target, nodes, nodesContract);
+                                (locationLayer.getCurrentPosition(), target, nodes, nodesContract);
                         routeLayer.setNodeList(nodes);
                         routeLayer.setRouteList(routeList);
                         mapView.refresh();
 
-                        Timer timer = new Timer();
-                        timer.schedule(new MoveTask(), 0, 1000);
+                        moveLocation();
                     }
                 });
                 mapView.refresh();
@@ -100,6 +95,26 @@ public class RouteLayerTestActivity extends AppCompatActivity {
             }
 
         });
+    }
+
+
+    private void moveLocation() {
+        RoutePositionChanger routePositionChanger = new RoutePositionChanger(new RoutePositionChanger.RoutePositionChangerCallback() {
+
+
+            @Override
+            public void onCallback(PointF point) {
+                locationLayer.setCurrentPosition(point);
+                mapView.refresh();
+            }
+        }, (float)20, (float) 5);
+
+        List<PointF> routeNodes = new ArrayList<>();
+        for (int i : routeList) {
+            routeNodes.add(nodes.get(i));
+        }
+
+        routePositionChanger.start(routeNodes);
     }
 
 
@@ -134,30 +149,5 @@ public class RouteLayerTestActivity extends AppCompatActivity {
             }
         }
         return super.onOptionsItemSelected(item);
-    }
-
-
-    class MoveTask extends TimerTask {
-
-        @Override
-        public void run() {
-
-            RouteLayerTestActivity.this.runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-
-                    if (routeList == null) {
-                        throw new NullPointerException("Route list is null");
-                    }
-
-                    if (!routeList.isEmpty()) {
-                        PointF currentPosition = nodes.get(routeList.get(0));
-                        locationLayer.setCurrentPosition(currentPosition);
-                        mapView.refresh();
-                        routeList.remove(0);
-                    }
-                }
-            });
-        }
     }
 }
