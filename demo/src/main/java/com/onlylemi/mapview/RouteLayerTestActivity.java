@@ -35,7 +35,28 @@ public class RouteLayerTestActivity extends AppCompatActivity {
     private List<Integer> routeList;
     private List<PointF>  routeNodes;
 
-    private RoutePositionChanger routePositionChanger;
+    private RoutePositionChanger routePositionChanger = new RoutePositionChanger(
+            new RoutePositionChanger.RoutePositionChangerCallback() {
+
+                @Override
+                public void onCallback(PointF point) {
+
+                    nodes.add(point);
+                    routeList.remove(0);
+                    routeList.add(0, nodes.size() - 1);
+
+                    if (isPassRouteNode(point)) {
+                        routeList.remove(1);
+                    }
+
+                    routeLayer.setNodeList(nodes);
+                    routeLayer.setRouteList(routeList);
+                    locationLayer.setCurrentPosition(point);
+                    mapView.refresh();
+
+                    nodes.remove(nodes.size() - 1);
+                }
+            }, (float) 20, (float) 5);
 
 
     @Override
@@ -77,6 +98,13 @@ public class RouteLayerTestActivity extends AppCompatActivity {
                     @Override
                     public void markIsClick(int num) {
 
+                        if (routePositionChanger.isRunning()) {
+                            routePositionChanger.stop();
+                        }
+
+                        nodes = TestData.getNodesList();
+                        nodesContract = TestData.getNodesContactList();
+
                         PointF target = new PointF(marks.get(num).x, marks.get(num).y);
                         routeList = MapUtils.getShortestDistanceBetweenTwoPoints
                                 (locationLayer.getCurrentPosition(), target, nodes, nodesContract);
@@ -107,35 +135,12 @@ public class RouteLayerTestActivity extends AppCompatActivity {
 
 
     private void moveLocation() {
-
-        if (routePositionChanger == null) {
-
-            routePositionChanger = new RoutePositionChanger(
-                    new RoutePositionChanger.RoutePositionChangerCallback() {
-
-                        @Override
-                        public void onCallback(PointF point) {
-                            nodes.add(point);
-                            routeList.remove(0);
-                            routeList.add(0, nodes.size() - 1);
-
-                            if (isPassRouteNode(point)) {
-                                routeList.remove(1);
-                            }
-
-                            locationLayer.setCurrentPosition(point);
-                            mapView.refresh();
-
-                            nodes.remove(nodes.size() - 1);
-                        }
-                    }, (float) 20, (float) 5);
-        }
-
         routePositionChanger.start(routeNodes);
     }
 
 
     private boolean isPassRouteNode(PointF point) {
+
         PointF routeNode = nodes.get(routeList.get(1));
         return getDistanceOfTowPoints(point, routeNode) == 0;
     }
