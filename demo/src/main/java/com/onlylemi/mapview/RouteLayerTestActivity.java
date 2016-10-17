@@ -33,6 +33,9 @@ public class RouteLayerTestActivity extends AppCompatActivity {
     private List<PointF>  marks;
     private List<String>  marksName;
     private List<Integer> routeList;
+    private List<PointF>  routeNodes;
+
+    private RoutePositionChanger routePositionChanger;
 
 
     @Override
@@ -81,6 +84,11 @@ public class RouteLayerTestActivity extends AppCompatActivity {
                         routeLayer.setRouteList(routeList);
                         mapView.refresh();
 
+                        routeNodes = new ArrayList<>();
+                        for (int i : routeList) {
+                            routeNodes.add(nodes.get(i));
+                        }
+
                         moveLocation();
                     }
                 });
@@ -99,22 +107,36 @@ public class RouteLayerTestActivity extends AppCompatActivity {
 
 
     private void moveLocation() {
-        RoutePositionChanger routePositionChanger = new RoutePositionChanger(new RoutePositionChanger.RoutePositionChangerCallback() {
 
+        if (routePositionChanger == null) {
 
-            @Override
-            public void onCallback(PointF point) {
-                locationLayer.setCurrentPosition(point);
-                mapView.refresh();
-            }
-        }, (float)20, (float) 5);
+            routePositionChanger = new RoutePositionChanger(
+                    new RoutePositionChanger.RoutePositionChangerCallback() {
 
-        List<PointF> routeNodes = new ArrayList<>();
-        for (int i : routeList) {
-            routeNodes.add(nodes.get(i));
+                        @Override
+                        public void onCallback(PointF point) {
+
+                            locationLayer.setCurrentPosition(point);
+                            mapView.refresh();
+                        }
+                    }, (float) 20, (float) 5);
         }
 
         routePositionChanger.start(routeNodes);
+    }
+
+
+    private boolean isPassRouteNode(PointF point) {
+
+        PointF routeNode = routeNodes.get(1);
+        return getDistanceOfTowPoints(point, routeNode) < 20;
+    }
+
+
+    private double getDistanceOfTowPoints(PointF from, PointF to) {
+
+        double distanceSquare = Math.pow(from.x - to.x, 2) + Math.pow(from.y - to.y, 2);
+        return Math.sqrt(distanceSquare);
     }
 
 
