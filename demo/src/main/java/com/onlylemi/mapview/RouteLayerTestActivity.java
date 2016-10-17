@@ -35,26 +35,28 @@ public class RouteLayerTestActivity extends AppCompatActivity {
     private List<Integer> routeList;
     private List<PointF>  routeNodes;
 
+    private List<PointF> nodesCopy = new ArrayList<>();
+
     private RoutePositionChanger routePositionChanger = new RoutePositionChanger(
             new RoutePositionChanger.RoutePositionChangerCallback() {
 
                 @Override
                 public void onCallback(PointF point) {
 
-                    nodes.add(point);
+                    nodesCopy.add(point);
                     routeList.remove(0);
-                    routeList.add(0, nodes.size() - 1);
+                    routeList.add(0, nodesCopy.size() - 1);
 
                     if (isPassRouteNode(point)) {
                         routeList.remove(1);
                     }
 
-                    routeLayer.setNodeList(nodes);
+                    routeLayer.setNodeList(nodesCopy);
                     routeLayer.setRouteList(routeList);
                     locationLayer.setCurrentPosition(point);
                     mapView.refresh();
 
-                    nodes.remove(nodes.size() - 1);
+                    nodesCopy.remove(nodesCopy.size() - 1);
                 }
             }, (float) 20, (float) 5);
 
@@ -102,9 +104,6 @@ public class RouteLayerTestActivity extends AppCompatActivity {
                             routePositionChanger.stop();
                         }
 
-                        nodes = TestData.getNodesList();
-                        nodesContract = TestData.getNodesContactList();
-
                         PointF target = new PointF(marks.get(num).x, marks.get(num).y);
                         routeList = MapUtils.getShortestDistanceBetweenTwoPoints
                                 (locationLayer.getCurrentPosition(), target, nodes, nodesContract);
@@ -135,6 +134,13 @@ public class RouteLayerTestActivity extends AppCompatActivity {
 
 
     private void moveLocation() {
+
+        nodesCopy.clear();
+
+        for (PointF point : nodes) {
+            nodesCopy.add(point);
+        }
+
         routePositionChanger.start(routeNodes);
     }
 
