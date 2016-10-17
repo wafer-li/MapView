@@ -115,9 +115,18 @@ public class RouteLayerTestActivity extends AppCompatActivity {
 
                         @Override
                         public void onCallback(PointF point) {
+                            nodes.add(point);
+                            routeList.remove(0);
+                            routeList.add(0, nodes.size() - 1);
+
+                            if (isPassRouteNode(point)) {
+                                routeList.remove(1);
+                            }
 
                             locationLayer.setCurrentPosition(point);
                             mapView.refresh();
+
+                            nodes.remove(nodes.size() - 1);
                         }
                     }, (float) 20, (float) 5);
         }
@@ -127,9 +136,8 @@ public class RouteLayerTestActivity extends AppCompatActivity {
 
 
     private boolean isPassRouteNode(PointF point) {
-
-        PointF routeNode = routeNodes.get(1);
-        return getDistanceOfTowPoints(point, routeNode) < 20;
+        PointF routeNode = nodes.get(routeList.get(1));
+        return getDistanceOfTowPoints(point, routeNode) == 0;
     }
 
 
