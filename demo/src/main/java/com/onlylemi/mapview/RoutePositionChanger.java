@@ -7,7 +7,12 @@ import java.util.List;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-
+/**
+ * RoutePositionChanger,
+ * change the current position according to route
+ *
+ * @author HughWang
+ */
 public class RoutePositionChanger implements Runnable {
 
     public interface RoutePositionChangerCallback {
